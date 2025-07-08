@@ -24,65 +24,11 @@
   <div id="count">10</div>
   <div id="diag"></div>
   <script>
-    document.getElementById("presentation").innerText = "My Video Wall";
-
-    function updateDeviceInfo() {
-      let diag = [];
-      try {
-        var serial = "Unavailable";
-        if (window.BrightSignSystem && BrightSignSystem.getSerialNumber) {
-          serial = BrightSignSystem.getSerialNumber();
-          diag.push("BrightSignSystem");
-        }
-        if (window.BrightSign && BrightSign.System && BrightSign.System.getSerialNumber) {
-          serial = BrightSign.System.getSerialNumber();
-          diag.push("BrightSign.System");
-        }
-        document.getElementById("serial").innerText = serial;
-
-        var wired = "Unavailable", wifi = "Unavailable";
-        if (window.BrightSignNetworkInfo && BrightSignNetworkInfo.getNetworkInterfaces) {
-          let ifaces = BrightSignNetworkInfo.getNetworkInterfaces();
-          diag.push("BrightSignNetworkInfo");
-          ifaces.forEach(i => {
-            if (i.interfaceType === "wired" && i.ipAddress && i.ipAddress !== "0.0.0.0") wired = i.ipAddress;
-            if ((i.interfaceType === "wireless" || i.interfaceType === "wifi") && i.ipAddress && i.ipAddress !== "0.0.0.0") wifi = i.ipAddress;
-          });
-        }
-        if (window.BrightSign && BrightSign.Networking && BrightSign.Networking.getNetworkInterfaces) {
-          let nets = BrightSign.Networking.getNetworkInterfaces();
-          diag.push("BrightSign.Networking");
-          nets.forEach(i => {
-            if (i.interfaceType === "wired" && i.ip4 && i.ip4.address && i.ip4.address !== "0.0.0.0") wired = i.ip4.address;
-            if ((i.interfaceType === "wireless" || i.interfaceType === "wifi") && i.ip4 && i.ip4.address && i.ip4.address !== "0.0.0.0") wifi = i.ip4.address;
-          });
-        }
-        document.getElementById("wiredip").innerText = wired;
-        document.getElementById("wifiip").innerText = wifi;
-      } catch (e) {
-        document.getElementById("serial").innerText = "Error";
-        document.getElementById("wiredip").innerText = "Error";
-        document.getElementById("wifiip").innerText = "Error";
-        diag.push("Error:" + e);
-      }
-      document.getElementById("diag").innerText = diag.join(" | ");
-    }
-    updateDeviceInfo();
-
-    let count = 10;
-    let timer = setInterval(function() {
-      count--;
-      document.getElementById('count').innerText = count;
-      if (count <= 0) {
-        clearInterval(timer);
-        // Try triggering BrightAuthor event, if supported
-        if (window.external && window.external.BrightSign && window.external.BrightSign.messagePort) {
-          window.external.BrightSign.messagePort.postMessage("done");
-        }
-        // Then refresh page
-        setTimeout(() => location.reload(), 1000);
-      }
-    }, 1000);
+  let diag = [];
+  if (window.BrightSignSystem) diag.push('BrightSignSystem');
+  if (window.BrightSignNetworkInfo) diag.push('BrightSignNetworkInfo');
+  if (window.BrightSign) diag.push('BrightSign');
+  document.getElementById('diag').innerText = diag.length ? diag.join(' | ') : 'NO BRIGHTSIGN JS OBJECTS';
   </script>
 </body>
 </html>
