@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Startup Countdown</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #111; color: #fff; text-align: center; margin-top: 10vh; }
+    #count { font-size: 5em; margin: 1em; }
+    #info { margin: 2em auto; max-width: 500px; background: #222; border-radius: 1em; padding: 1.5em; box-shadow: 0 4px 24px #0005; }
+    #info div { font-size: 1.2em; margin: .5em 0; text-align: left; }
+    .label { display: inline-block; min-width: 150px; color: #888; }
+    .val { color: #fff; }
+    #diag { color:#ccc; font-size:1em; margin-top:2em; }
+  </style>
+</head>
+<body>
+  <div id="info">
+    <div><span class="label">Presentation:</span> <span class="val" id="presentation">My Video Wall</span></div>
+    <div><span class="label">Serial Number:</span> <span class="val" id="serial">Loading…</span></div>
+    <div><span class="label">Wired IP:</span> <span class="val" id="wiredip">Loading…</span></div>
+    <div><span class="label">Wireless IP:</span> <span class="val" id="wifiip">Loading…</span></div>
+  </div>
+  <h1>Preparing…</h1>
+  <div id="count">60</div>
+  <div id="diag"></div>
+  <script>
+    // Set your presentation name here if you want to customize per unit
+    document.getElementById("presentation").innerText = "My Video Wall";
+
+    function updateDeviceInfo() {
+      let diag = [];
+      try {
+        // Serial Number: Try both classic and modern API
+        var serial = "Unavailable";
+        if (window.BrightSignSystem && BrightSignSystem.getSerialNumber) {
+          serial = BrightSignSystem.getSerialNumber();
+          diag.push("BrightSignSystem detected.");
+        }
+        if (window.BrightSign && BrightSign.System && BrightSign.System.getSerialNumber) {
+          serial = BrightSign.System.getSerialNumber();
+          diag.push("BrightSign.System detected.");
+        }
+        document.getElementById("serial").innerText = serial;
+
+        // Wired/Wireless IP: Try both classic and modern API
+        var wired = "Unavailable", wifi = "Unavailable";
+        if (window.BrightSignNetworkInfo && BrightSignNetworkInfo.getNetworkInterfaces) {
+          var ifaces = BrightSignNetworkInfo.getNetworkInterfaces();
+          diag.push("BrightSignNetworkInfo detected.");
+          for (var i = 0; i < ifaces.length; i++) {
+            var iface = ifaces[i];
+            if (iface.interfaceType === "wired" && iface.ipAddress && iface.ipAddress !== "0.0.0.0") {
+              wired = iface.ipAddress;
+            }
+            if ((iface.interfaceType === "wireless" || iface.interfaceType === "wifi") && iface.ipAddress && iface.ipAddress !== "0.0.0.0") {
+              wifi = iface.ipAddress;
+            }
+          }
+        }
+        if (window.BrightSign && BrightSign.Networking && BrightSign.Networking.getNetworkInterfaces) {
+          var nets = BrightSign.Networking.getNetworkInterfaces();
+          diag.push("BrightSign.Networking detected.");
+          nets.forEach(function(iface) {
+            if (iface.interfaceType === "wired" && iface.ip4 && iface.ip4.address && iface.ip4.address !== "0.0.0.0") {
+              wired = iface.ip4.address;
+            }
+            if ((iface.interfaceType === "wireless" || iface.interfaceType === "wifi") && iface.ip4 && iface.ip4.address && iface.ip4.address !== "0.0.0.0") {
+              wifi = iface.ip4.address;
+            }
+          });
+        }
+        document.getElementById("wiredip").innerText = wired;
+        document.getElementById("wifiip").innerText = wifi;
+      } catch (e) {
+        document.getElementById("serial").innerText = "Error";
+        document.getElementById("wiredip").innerText = "Error";
+        document.getElementById("wifiip").innerText = "Error";
+        diag.push("Error: " + e);
+      }
+      // Diagnostic: show which APIs are detected
+      let diagDiv = document.getElementById("diag");
+      if (diagDiv) {
+        diagDiv.innerText = diag.join(" | ");
+      }
+    }
+    updateDeviceInfo();
+
+    // Countdown timer
+    let count = 60;
+    let timer = setInterval(function() {
+      count--;
+      document.getElementById('count').innerText = count;
+      if(count <= 0) {
+        clearInterval(timer);
+        // Refresh the page after countdown
+        location.reload();
+      }
+    }, 1000);
+  </script>
+</body>
+</html>
